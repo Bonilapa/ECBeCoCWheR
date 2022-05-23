@@ -75,4 +75,3 @@ class Agent(Element):
         
         # x,y = self.get_position()
         # print(x, y)
-    

@@ -8,16 +8,14 @@ import matplotlib.pyplot as plt
 import PIL.Image as Image
 from gym import Env, spaces
 from ents.Agent import Agent
-from ents.Bird import Bird
-from ents.Fuel import Fuel
 from ents.World import World
 from math import sin, cos, sqrt, radians
 
-class ChopperScape(Env):
+class WheeledRobots(Env):
     def __init__(self, agents_amount, show = True):
         self.overall_distance = 0.0
         self.agents_amount = agents_amount
-        super(ChopperScape, self).__init__()
+        super(WheeledRobots, self).__init__()
         
         # Define a 2-D observation space
         observation_shape = (600, 800, 3)
@@ -77,6 +75,9 @@ class ChopperScape(Env):
     def get_action_meanings(self):
         #return {0: "Right", 1: "Left", 2: "Down", 3: "Up", 4: "Do Nothing"}
         return {0: "Speed", 1: "Turn", 2: "Signal"}
+
+    def get_action_dim(self):
+        return self.action_spaces[0].shape
     
 
     
