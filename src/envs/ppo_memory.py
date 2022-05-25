@@ -20,16 +20,16 @@ class PPOMemory:
 
         return np.array(self.states),\
                 np.array(self.actions),\
-                np.array(self.probs),\
                 np.array(self.vals),\
                 np.array(self.rewards),\
                 np.array(self.dones),\
                 batches
+                # np.array(self.probs),\
 
-    def store_memory(self, state, action, probs, vals, reward, done):
+    def store_memory(self, state, action, vals, reward, done):
         self.states.append(state)
         self.actions.append(action)
-        self.probs.append(probs)
+        # self.probs.append(probs)
         self.vals.append(vals)
         self.rewards.append(reward)
         self.dones.append(done)

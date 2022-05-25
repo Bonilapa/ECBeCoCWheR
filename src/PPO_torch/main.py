@@ -13,7 +13,7 @@ if __name__ == '__main__':
                     alpha=alpha, n_epochs=n_epochs, 
                     input_dims=env.observation_space.shape)
     
-    agent.load_models()
+    # agent.load_models()
 
     n_games = 300
 

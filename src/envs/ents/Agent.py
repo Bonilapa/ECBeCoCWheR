@@ -17,7 +17,7 @@ class Agent(Element):
         self.orientation = 0
         self.velocity = np.random.uniform(0, 1)
         try:
-            self.icon_original = cv2.imread("/home/wil/BCR/docker-containers/project/ECBeCoCWheR/src/envs/ents/icons/robot.png")
+            self.icon_original = cv2.imread("/home/wil//ECBeCoCWheR/src/envs/ents/icons/robot.png")
         except Exception as e:
             print(str(e))
         # self.icon = self.icon_original
@@ -56,7 +56,7 @@ class Agent(Element):
 
     def rotate(self, turn):
         # print("turn: ", turn%360)
-        self.rotate_image(turn%360)
+        self.rotate_image(turn%360.0)
     
     def set_velocity(self, nvel):
         self.velocity = nvel

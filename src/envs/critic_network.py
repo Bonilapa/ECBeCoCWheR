@@ -9,8 +9,11 @@ class CriticNetwork(nn.Module):
         super(CriticNetwork, self).__init__()
 
         self.checkpoint_file = os.path.join(chkpt_dir, 'critic_torch_ppo')
+        input = 1
+        for i in input_dims:
+            input *= i
         self.critic = nn.Sequential(
-                nn.Linear(*input_dims, fc1_dims),
+                nn.Linear(input, fc1_dims),
                 nn.ReLU(),
                 nn.Linear(fc1_dims, fc2_dims),
                 nn.ReLU(),
@@ -22,7 +25,8 @@ class CriticNetwork(nn.Module):
         self.to(self.device)
 
     def forward(self, state):
-        value = self.critic(state)
+        # print()
+        value = self.critic(state.view(state.size(0), -1))
 
         return value
 

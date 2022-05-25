@@ -113,6 +113,7 @@ class WheeledRobots(Env):
         # print("Action turn : ", action[1])
         # print("Action velo : ", action[0])
         for agent, action in zip(self.world.agents, actions):
+            print("\n", action.item(), "\n")
             agent.rotate(action[1]* 10)
             agent.set_velocity(action[0]*10)
 

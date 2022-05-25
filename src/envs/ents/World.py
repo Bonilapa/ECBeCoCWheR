@@ -17,8 +17,12 @@ class World:
         self.objects_amount = objects_amount
         self.canvas_shape = form
 
+        # print(self.canvas_shape)
+
         # Init the canvas 
         self.canvas = np.ones(form)
+
+        # print(self.canvas_shape)
         
 
         # Permissible area of helicper to be 
@@ -112,6 +116,8 @@ class World:
     
     
     def draw_world(self, done = False, dark = False):
+
+        # print(self.canvas_shape)
         # print(self.canvas.shape)
         self.canvas[self.x_min, :] = 0
         self.canvas[self.x_max, :] = 0
@@ -127,7 +133,10 @@ class World:
             # Draw the heliopter on canvas
             for elem in self.elements:
                 elem_shape = (elem.get_w(), elem.get_h())
+                # print("\n", elem_shape, "\n")
+                # print(np.array((elem.icon)).shape)
                 x, y = elem.x, elem.y
+                # print(x,y)
                 # print("[ ", elem.name, elem.get_position()) 
                 # print(elem_shape, elem_shape[1], elem_shape[0])
                 # temp = self.canvas[x:x + elem_shape[0], y : (y + elem_shape[1])]
