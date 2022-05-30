@@ -27,9 +27,9 @@ class WheeledRobots(Env):
         # Define an action space ranging from 0 to 4
         # self.action_space = spaces.Discrete(5,)
         self.action_spaces = []
-        for i in range(0, self.agents_amount):
-            self.action_spaces.append(spaces.Box(low= - np.ones(3),
-                                        high= np.ones(3),
+        for i in range(self.agents_amount):
+            self.action_spaces.append(spaces.Box(low= - np.ones(1),
+                                        high= np.ones(1),
                                         dtype=np.float16))
         
         self.world = World(observation_shape, self.agents_amount, 0)
@@ -113,9 +113,10 @@ class WheeledRobots(Env):
         # print("Action turn : ", action[1])
         # print("Action velo : ", action[0])
         for agent, action in zip(self.world.agents, actions):
-            print("\n", action.item(), "\n")
-            agent.rotate(action[1]* 10)
-            agent.set_velocity(action[0]*10)
+            # print("\n", action.item(), "\n")
+            agent.rotate(action* 10)
+            agent.set_velocity(5)
+            # agent.set_velocity(action*10)
 
             current_x, current_y = agent.get_position()
             cur_x = float(current_x)
@@ -215,6 +216,8 @@ class WheeledRobots(Env):
         # if self.fuel_left <= 0:
         #     done = True
 
+        if(self.ep_return > 50):
+            done = True
         # Draw elements on the canvas
         self.observation_space = self.world.draw_world(done = done)
         # print(self.world.get_world().shape)

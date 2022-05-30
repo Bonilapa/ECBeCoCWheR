@@ -1,9 +1,9 @@
 
 import numpy as np
 import torch as T
-from ppo_memory import PPOMemory
-from actor_network import ActorNetwork
-from critic_network import CriticNetwork
+from torch.ppo_memory import PPOMemory
+from torch.actor_network import ActorNetwork
+from torch.critic_network import CriticNetwork
 class AI:
     def __init__(self, n_actions, input_dims, gamma=0.99, alpha=0.0003, gae_lambda=0.95,
             policy_clip=0.2, batch_size=64, n_epochs=10):
@@ -12,35 +12,37 @@ class AI:
         self.n_epochs = n_epochs
         self.gae_lambda = gae_lambda
 
-        self.actor = ActorNetwork(n_actions, input_dims, alpha)
-        self.critic = CriticNetwork(input_dims, alpha)
-        self.memory = PPOMemory(batch_size)
+        self.actor_turn = ActorNetwork(n_actions, input_dims, alpha)
+        self.critic_turn = CriticNetwork(input_dims, alpha)
+        self.memory_turn = PPOMemory(batch_size)
        
     def remember(self, state, action, probs, vals, reward, done):
         self.memory.store_memory(state, action, probs, vals, reward, done)
 
     def save_models(self):
         print('... saving models ...')
-        self.actor.save_checkpoint()
-        self.critic.save_checkpoint()
+        self.actor_turn.save_checkpoint()
+        self.critic_turn.save_checkpoint()
 
     def load_models(self):
         print('... loading models ...')
-        self.actor.load_checkpoint()
-        self.critic.load_checkpoint()
+        self.actor_turn.load_checkpoint()
+        self.critic_turn.load_checkpoint()
 
     def choose_action(self, observation):
         state = T.tensor([observation], dtype=T.float).to(self.actor.device)
 
-        dist = self.actor(state)
-        value = self.critic(state)
-        action = dist.sample()
+        dist_turn = self.actor_turn(state)
+        value_turn = self.critic_turn(state)
+        action_turn = dist_turn.sample()
 
-        probs = T.squeeze(dist.log_prob(action)).item()
-        action = T.squeeze(action).item()
-        value = T.squeeze(value).item()
+        probs_turn = T.squeeze(dist_turn.log_prob(action_turn)).item()
+        action_turn = T.squeeze(action_turn).item()
+        value_turn = T.squeeze(value_turn).item()
 
-        return action, probs, value
+        return [action_turn,\
+                probs_turn,\
+                value_turn]
 
     def learn(self):
         for _ in range(self.n_epochs):
@@ -85,11 +87,11 @@ class AI:
                 critic_loss = critic_loss.mean()
 
                 total_loss = actor_loss + 0.5*critic_loss
-                self.actor.optimizer.zero_grad()
-                self.critic.optimizer.zero_grad()
+                self.actor_turn.optimizer.zero_grad()
+                self.critic_turn.optimizer.zero_grad()
                 total_loss.backward()
-                self.actor.optimizer.step()
-                self.critic.optimizer.step()
+                self.actor_turn.optimizer.step()
+                self.critic_turn.optimizer.step()
 
         self.memory.clear_memory()  
     
