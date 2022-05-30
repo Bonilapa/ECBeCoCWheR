@@ -1,2 +1,7 @@
 *__pycache__*
+src/cartpole_tf/__pycache__/*
+src/cartpole_torch/__pycache__/*
 src/envs/ents/__pycache__/*
+src/envs/__pycache__/*
+src/envs/tf/__pycache__/*
+src/envs/torch/__pycache__/*
