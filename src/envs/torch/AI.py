@@ -19,15 +19,15 @@ class AI:
     def remember(self, state, action, probs, vals, reward, done):
         self.memory_turn.store_memory(state, action, probs, vals, reward, done)
 
-    def save_models(self):
-        print('... saving models ...')
-        self.actor_turn.save_checkpoint()
-        self.critic_turn.save_checkpoint()
+    def save_models(self, name):
+        print('... saving models ', name)
+        self.actor_turn.save_checkpoint(name)
+        self.critic_turn.save_checkpoint(name)
 
-    def load_models(self):
-        print('... loading models ...')
-        self.actor_turn.load_checkpoint()
-        self.critic_turn.load_checkpoint()
+    def load_models(self, name):
+        print('... loading models ', name)
+        self.actor_turn.load_checkpoint(name)
+        self.critic_turn.load_checkpoint(name)
 
     def choose_action(self, observation):
         state = T.tensor([observation], dtype=T.float).to(self.actor_turn.device)

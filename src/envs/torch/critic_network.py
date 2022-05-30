@@ -5,10 +5,10 @@ import torch.optim as optim
 
 class CriticNetwork(nn.Module):
     def __init__(self, input_dims, alpha, fc1_dims=10, fc2_dims=10,
-            chkpt_dir='tmp/ppo'):
+            chkpt_dir='tmp'):
         super(CriticNetwork, self).__init__()
 
-        self.checkpoint_file = os.path.join(chkpt_dir, 'critic_torch_ppo')
+        self.checkpoint_file = os.path.join(chkpt_dir, 'critic_')
         input = 1
         for i in input_dims:
             input *= i
@@ -30,8 +30,10 @@ class CriticNetwork(nn.Module):
 
         return value
 
-    def save_checkpoint(self):
-        T.save(self.state_dict(), self.checkpoint_file)
+    def save_checkpoint(self, name):
+        file = os.path.join(self.checkpoint_file + name)
+        T.save(self.state_dict(), file)
 
-    def load_checkpoint(self):
-        self.load_state_dict(T.load(self.checkpoint_file))   
+    def load_checkpoint(self, name):
+        file = os.path.join(self.checkpoint_file + name)
+        self.load_state_dict(T.load(file))  

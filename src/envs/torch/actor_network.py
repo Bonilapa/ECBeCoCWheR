@@ -6,10 +6,10 @@ from torch.distributions.categorical import Categorical
 
 class ActorNetwork(nn.Module):
     def __init__(self, n_actions, input_dims, alpha,
-            fc1_dims=10, fc2_dims=10, chkpt_dir='tmp/ppo'):
+            fc1_dims=10, fc2_dims=10, chkpt_dir='tmp'):
         super(ActorNetwork, self).__init__()
         # print(n_actions, *input_dims)
-        self.checkpoint_file = os.path.join(chkpt_dir, 'actor_torch_ppo')
+        self.checkpoint_file = os.path.join(chkpt_dir, 'actor_')
         input = 1
         for i in input_dims:
             input *= i
@@ -33,8 +33,10 @@ class ActorNetwork(nn.Module):
         
         return dist
 
-    def save_checkpoint(self):
-        T.save(self.state_dict(), self.checkpoint_file)
+    def save_checkpoint(self, name):
+        file = os.path.join(self.checkpoint_file + name)
+        T.save(self.state_dict(), file)
 
-    def load_checkpoint(self):
-        self.load_state_dict(T.load(self.checkpoint_file))
+    def load_checkpoint(self, name):
+        file = os.path.join(self.checkpoint_file + name)
+        self.load_state_dict(T.load(file))

@@ -53,13 +53,17 @@ avg_score = 0
 n_steps = 0
 
 
-
+loaded_ppo = False
 for i in range(n_games):
     observation = env.reset()
+    if not loaded_ppo:
+        for a, ai in zip(env.world.agents, agents_ai):
+            ai.load_models(a.name)
+        loaded_ppo = True
     done = False
     score = 0
     while not done:
-        env.render()
+        # env.render()
 
         actions = []
         probs = []
@@ -70,10 +74,11 @@ for i in range(n_games):
             actions.append(a)
             probs.append(p)
             vals.append(v)
-        # action, prob, val = agent.choose_action(observation)
+            
         observation_, reward, done, info = env.step(actions)
         n_steps += 1
         score += reward
+        
         for ai, a, p, v in zip(agents_ai, actions, probs, vals):
             ai.remember(observation, a, p, v, reward, done)
             if n_steps % N == 0:
@@ -85,115 +90,12 @@ for i in range(n_games):
 
     if avg_score > best_score:
         best_score = avg_score
-        for ai in agents_ai:
-            ai.save_models()
+        for ai, agent in zip(agents_ai, env.world.agents):
+            ai.save_models(agent.name)
 
     print('episode', i, 'score %.1f' % score, 'avg score %.1f' % avg_score,
             'time_steps', n_steps, 'learning_steps', learn_iters)
 x = [i+1 for i in range(len(score_history))]
 plot_learning_curve(x, score_history, figure_file)
 
-
-
-
-
-
-
-# nepisodes = 3
-# networks = Networks(env)
-
-
-# popsize = 10
-# pop_half = int(popsize / 2)
-# variance = 0.1
-# pertubation_variance = 0.02
-# ngenerations = 500
-# nepisodes = 200
-
-# parameters = networks.compute_nparameters()
-# populations = []
-# for param in parameters:
-#     populations.append(np.random.randn(popsize, param) * variance)
-# new_pops = np.transpose(populations, (1, 0, 2))
-
-
-
-# # print(np.array(populations).shape)
-# for g in range(ngenerations):
-#     print("____________Generation ", g, " :\n")
-#     fitness = []
-#     for i in range(popsize):
-#         # print(i)
-#         networks.set_genotypes(new_pops[i])
-#         fit = networks.evaluate(env, nepisodes, show = True)
-#         fitness.append(fit)
-# #    print(fitness)
-#     best_index = np.argsort(fitness)
-#     print(" Best fitness: ", best_index[0])
-#     # print(best_index)
-#     # print(new_pops.shape)
-#     # print(np.array(parameters).shape)
-# #    print("\n best_index ", best_index)
-#     for i in range(pop_half):
-#         for a in range(agents_amount):
-#             new_pops[best_index[i]] = new_pops[best_index[i+pop_half]] + np.random.randn(parameters[a]) * pertubation_variance
-#     print( " - total rewards: ", fitness, "\n____________Generation ", g, ".")
-
-
-    
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 env.close()
-'''
-for i_episode in range(10):
-
-    observation = env.reset()
-    fitness = 0
-
-    for t in range(200):
-        #env.render()
-
-        env_screen = env.render()
-
-        #print(observation)
-        action = env.action_space.sample()
-        # print("\n___"+str(action)+"___\n")
-        observation, reward, done, info = env.step(action)
-        fitness += reward
-        # print("\nFitness: "+str(fitness)+"\n")
-
-        if done:
-            print("Episode finished after {} timesteps".format(t+1))
-            print("\nFitness: "+str(fitness)+"\n")
-
-            break
-env.close()
-
-while True:
-    # Take a random action
-    action = env.action_space.sample()
-    obs, reward, done, info = env.step(action)
-    
-    # Render the game
-    env.render()
-    
-    if done == True:
-        break
-
-env.close()
-'''

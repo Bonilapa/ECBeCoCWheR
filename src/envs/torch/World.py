@@ -79,24 +79,10 @@ class World:
                 x = np.float16(random.randrange(self.x_min, self.x_max))
                 y = np.float16(random.randrange(self.y_min, self.y_max))
                 agent.set_position(x, y)
-                # print(agent.get_position())
-                # sleep(1)
-                # for a in self.agents:
-                #     if self.has_collided(agent, a):
-                #         print("True")
-                #     else:
-                #         print("False")
-                # print(len(self.agents))
                 if not any(self.has_collided(agent, a) for a in self.agents):
                     self.agents.append(agent)
                     self.elements.append(agent)
                     drawn = True
-                # for i in range(len(self.agents)):
-                #     if self.has_collided(agent, self.agents[i]):
-                #         break
-                #     else: 
-                #         if i >= len(self.agents)-1:
-                #             drawn = True
 
         
         for i in range(self.objects_amount):
@@ -117,8 +103,6 @@ class World:
     
     def draw_world(self, done = False, dark = False):
 
-        # print(self.canvas_shape)
-        # print(self.canvas.shape)
         self.canvas[self.x_min, :] = 0
         self.canvas[self.x_max, :] = 0
         self.canvas[:, self.y_min] = 0
@@ -133,15 +117,7 @@ class World:
             # Draw the heliopter on canvas
             for elem in self.elements:
                 elem_shape = (elem.get_w(), elem.get_h())
-                # print("\n", elem_shape, "\n")
-                # print(np.array((elem.icon)).shape)
                 x, y = elem.x, elem.y
-                # print(x,y)
-                # print("[ ", elem.name, elem.get_position()) 
-                # print(elem_shape, elem_shape[1], elem_shape[0])
-                # temp = self.canvas[x:x + elem_shape[0], y : (y + elem_shape[1])]
-                # print(temp.shape, self.canvas.shape[0], y, y + elem_shape[1], "\n")
-                # print(elem.name)
                 self.canvas[int(np.round(x) - elem_shape[0]/2) : int(np.round(x) + elem_shape[0]/2), int(np.round(y) -  + elem_shape[0]/2): int(np.round(y) + elem_shape[1]/2)] = elem.icon
                 # self.canvas = self.draw_cross(self.canvas, int(np.round(x)), int(np.round(y)))
 
