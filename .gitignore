@@ -1,6 +1,8 @@
 *__pycache__*
-src/cartpole_tf
-src/cartpole_torch
+src/cartpole_tf/models/*
+src/cartpole_torch/tmp/*
+src/cartpole_tf/models/__pycache__/*
+src/cartpole_torch/tmp__pycache__/**
 src/envs/ents/__pycache__/*
 src/envs/__pycache__/*
 src/envs/tf/__pycache__/*
