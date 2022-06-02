@@ -4,7 +4,7 @@ import torch.nn as nn
 import torch.optim as optim
 
 class CriticNetwork(nn.Module):
-    def __init__(self, input_dims, alpha, fc1_dims=10, fc2_dims=10,
+    def __init__(self, input_dims, alpha, fc1_dims=64, fc2_dims=64,
             chkpt_dir='tmp'):
         super(CriticNetwork, self).__init__()
 

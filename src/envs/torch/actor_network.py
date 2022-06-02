@@ -6,7 +6,7 @@ from torch.distributions.categorical import Categorical
 
 class ActorNetwork(nn.Module):
     def __init__(self, n_actions, input_dims, alpha,
-            fc1_dims=10, fc2_dims=10, chkpt_dir='tmp'):
+            fc1_dims=64, fc2_dims=64, chkpt_dir='tmp'):
         super(ActorNetwork, self).__init__()
         # print(n_actions, *input_dims)
         self.checkpoint_file = os.path.join(chkpt_dir, 'actor_')
@@ -29,7 +29,8 @@ class ActorNetwork(nn.Module):
         # print(state.shape, "forward")
         dist = self.actor(state.view(state.size(0), -1))
         # print(dist)
-        # dist = Categorical(dist)
+        # dist = Categorical(dist, dim)
+        # print("\n dist:\n", dist, "\n")
         
         return dist
 

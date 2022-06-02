@@ -4,6 +4,7 @@ import torch as T
 from ppo_memory import PPOMemory
 from actor_network import ActorNetwork
 from critic_network import CriticNetwork
+from torch.distributions.categorical import Categorical
 class AI:
     def __init__(self, n_actions, input_dims, gamma=0.99, alpha=0.0003, gae_lambda=0.95,
             policy_clip=0.2, batch_size=64, n_epochs=10):
@@ -33,25 +34,37 @@ class AI:
         state = T.tensor([observation], dtype=T.float).to(self.actor_turn.device)
 
         dist_turn = self.actor_turn(state)
+        # print("\n dist:\n", dist_turn, "\n")
+        # tmp = Categorical(dist_turn)
+
+        # print("\n tmp:\n", tmp, "\n")
+        # tmp_sample = tmp.sample()
+        # probs_turn = T.squeeze(tmp.log_prob(tmp_sample)).item()
+
         value_turn = self.critic_turn(state)
-        # print(dist_turn.tolist())
+        value_turn = T.squeeze(value_turn).item()
+        # print(dist_turn)
         action_turn = T.squeeze(dist_turn).tolist()
         # print(action_turn)
-        max = np.amax([abs(a) for a in action_turn])
+        # max = np.amax([abs(a) for a in action_turn])
         # print(max)
         # action_turn = T.squeeze(dist_turn)
         # print(action_turn)
+
         probs_turn = T.squeeze(T.Tensor( [0.1*action_turn[0] + 0.01*action_turn[1]  + 0.001*action_turn[2]])).item()
         # print(probs_turn)
+
         # action_turn = T.squeeze(action_turn).item()
-        value_turn = T.squeeze(value_turn).item()
+
+
         # print("\n", action_turn, "\n")
         return [action_turn,\
+                # tmp_sample,\
                 probs_turn,\
                 value_turn]
 
     def learn(self):
-        print("learn")
+        # print("learn")
         for _ in range(self.n_epochs):
             state_arr, action_arr, old_prob_arr, vals_arr,\
             reward_arr, dones_arr, batches = \
@@ -76,12 +89,14 @@ class AI:
                 old_probs = T.tensor(old_prob_arr[batch]).to(self.actor_turn.device)
                 actions = T.tensor(action_arr[batch]).to(self.actor_turn.device)
 
-                dist = self.actor_turn(states)
-                critic_value = self.critic_turn(states)
+                # dist = Categorical(self.actor_turn(states))
+                # tmp = dist.sample()
 
+                critic_value = self.critic_turn(states)
                 critic_value = T.squeeze(critic_value)
                 # print(actions)
-                actions = actions.tolist()
+                # actions = T.squeeze(dist).tolist()
+                # new_probs = tmp.log_prob(actions)
                 # print(old_probs)
                 # print(actions)
                 # print(actions[0][2])
@@ -89,6 +104,7 @@ class AI:
                 for a in actions:
                     act.append(0.1*a[0] + 0.01*a[1] + 0.001*a[2])
                 # act = [0.1*actions[:][0] + 0.01*actions[1]  + 0.001*actions[2]]
+                # print("\nact\n",old_probs)
                 new_probs = T.squeeze(T.Tensor(act))
                 prob_ratio = new_probs.exp() / old_probs.exp()
                 #prob_ratio = (new_probs - old_probs).exp()
@@ -98,7 +114,7 @@ class AI:
                 actor_loss = -T.min(weighted_probs, weighted_clipped_probs).mean()
 
                 returns = advantage[batch] + values[batch]
-                critic_loss = (returns-critic_value)**2
+                critic_loss = (returns - critic_value)**2
                 critic_loss = critic_loss.mean()
 
                 total_loss = actor_loss + 0.5*critic_loss

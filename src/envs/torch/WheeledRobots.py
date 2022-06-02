@@ -18,9 +18,19 @@ class WheeledRobots(Env):
         super(WheeledRobots, self).__init__()
         
         # Define a 2-D observation space
-        observation_shape = (600, 800, 3)
-        self.observation_space = spaces.Box(low = np.zeros(observation_shape), 
-                                        high = np.ones(observation_shape),
+        # observation_shape = (600, 800, 3)
+        world_shape = (600, 800, 3)
+        obs_vector = 0
+        for i in range(agents_amount):
+            # signal, velocity, orientation, position(x,y)
+            obs_vector += 5
+
+        # self.observation_space = spaces.Box(low = np.zeros(observation_shape), 
+        #                                 high = np.ones(observation_shape),
+        #                                 dtype = np.float16)
+    
+        self.observation_space = spaces.Box(low = np.zeros(obs_vector), 
+                                        high = np.ones(obs_vector),
                                         dtype = np.float16)
     
         
@@ -28,12 +38,13 @@ class WheeledRobots(Env):
         # self.action_space = spaces.Discrete(5,)
         self.action_spaces = []
         for i in range(self.agents_amount):
-            self.action_spaces.append(spaces.Box(low= - np.ones(1),
-                                        high= np.ones(1),
+            self.action_spaces.append(spaces.Box(low= np.zeros(3),
+                                        high= np.ones(3),
                                         dtype=np.float16))
         
-        self.world = World(observation_shape, self.agents_amount, 0)
+        self.world = World(world_shape, self.agents_amount, 0)
         
+        self.finish_distance = 0.0
         # Define elements present inside the environment
         
         # Maximum fuel chopper can take at once
@@ -42,13 +53,20 @@ class WheeledRobots(Env):
 
     def get_agents_amount(self):
         return self.agents_amount
+    
+    def reward_goal_1(self, actions):
+        agents = self.world.agents
+        if agents[0].velocity < actions[0][1] and agents[1].velocity > actions[1][1]:
+            return 1
+        else:
+            return 0
 
     def reset(self):
         # Reset the fuel consumed
         # self.fuel_left = self.max_fuel
 
         # Reset the reward
-        self.ep_return  = 0
+        self.ep_return  = 100
         # Number of birds
         # self.bird_count = 0
         # self.fuel_count = 0
@@ -56,6 +74,10 @@ class WheeledRobots(Env):
 
         # print("-----------here")
         self.world.reset()
+
+        # self.finish_distance = 0.0
+        # for i in range(self.world.agents_amount):
+        #     self.finish_distance += self.world.agents[i].icon_w_original / 2 + 20
 
         # Determine a place to intialise the chopper in
         
@@ -67,7 +89,8 @@ class WheeledRobots(Env):
         # self.canvas = np.ones(self.observation_shape) * 1
 
         # Draw elements on the canvas
-        self.observation_space = self.world.draw_world()
+        # self.observation_space = self.world.draw_world()
+        self.observation_space = self.world.get_observation()
 
         # return the observation
         return self.observation_space
@@ -96,26 +119,42 @@ class WheeledRobots(Env):
         # self.fuel_left -= 1 
         
         # Reward for executing a step.
-        reward = 0
-        current_distance = 0.0
-        for i in range(self.world.agents_amount-1):
-            x1, y1 = self.world.agents[i].get_position()
-            x2, y2 = self.world.agents[i-1].get_position()
-            current_distance += sqrt((x1 - x2)**2 + (y1 - y2)**2)
-        if current_distance < self.overall_distance:
-            reward = 1
-        else:
-            reward = 0
+        reward = self.reward_goal_1(actions)
+        # current_distance = 0.0
+        # for i in range(self.world.agents_amount-1):
+        #     x1, y1 = self.world.agents[i].get_position()
+        #     x2, y2 = self.world.agents[i-1].get_position()
+        #     current_distance += sqrt((x1 - x2)**2 + (y1 - y2)**2)
+
+        # if current_distance <= self.finish_distance:
+        #     done = True
+        #     reward = self.ep_return
+
+        # if current_distance < self.overall_distance:
+        #     reward = 1
+        # else:
+        #     reward = 0
+
+        # self.overall_distance = current_distance
+
+        # print("current: ", current_distance, "finish: ", self.finish_distance)
+
+            # print("current: ", current_distance, "finish: ", self.finish_distance, "------------------done condition")
         
-        self.overall_distance = current_distance
+                # Increment the episodic return
+        self.ep_return -= 1
+
+
+        if(self.ep_return <= 0):
+            done = True
 
         # apply the action to the chopper
         # print("Action turn : ", action[1])
         # print("Action velo : ", action[0])
         for agent, action in zip(self.world.agents, actions):
             # print("\n", action.item(), "\n")
-            agent.rotate(action[0]* 10)
-            agent.set_velocity(action[1]*10)
+            agent.rotate(action[0])
+            agent.set_velocity(action[1])
             agent.set_signal(action[2])
             # agent.set_velocity(action*10)
 
@@ -210,18 +249,14 @@ class WheeledRobots(Env):
             #         # Fill the fuel tank of the chopper to full.
             #         self.fuel_left = self.max_fuel
         
-        # Increment the episodic return
-        self.ep_return += 1
 
-        # If out of fuel, end the episode.
-        # if self.fuel_left <= 0:
-        #     done = True
-
-        if(self.ep_return > 50):
-            done = True
+            # print("done")
         # Draw elements on the canvas
-        self.observation_space = self.world.draw_world(done = done)
+        # self.observation_space = self.world.draw_world(done = done)
+
+        self.observation_space = self.world.get_observation()
         # print(self.world.get_world().shape)
+        # print(self.obsservation_space)
         return self.observation_space, reward, done, []
 
     def render(self, mode = "human"):

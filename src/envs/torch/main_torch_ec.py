@@ -41,7 +41,7 @@ for i in range(agents_amount):
                     alpha=alpha, n_epochs=n_epochs, 
                     input_dims=env.observation_space.shape))
 
-n_games = 300
+n_games = 3000
 
 figure_file = 'plots/cartpole.png'
 
@@ -56,10 +56,10 @@ n_steps = 0
 loaded_ppo = False
 for i in range(n_games):
     observation = env.reset()
-    if not loaded_ppo:
-        for a, ai in zip(env.world.agents, agents_ai):
-            ai.load_models(a.name)
-        loaded_ppo = True
+    # if not loaded_ppo:
+    #     for a, ai in zip(env.world.agents, agents_ai):
+    #         ai.load_models(a.name)
+    #     loaded_ppo = True
     done = False
     score = 0
     while not done:
@@ -68,13 +68,14 @@ for i in range(n_games):
         actions = []
         probs = []
         vals = []
+        # ts = []
 
         for ai in agents_ai:
             a, p, v = ai.choose_action(observation)
             actions.append(a)
             probs.append(p)
             vals.append(v)
-            
+            # ts.append(t)
         observation_, reward, done, info = env.step(actions)
         n_steps += 1
         score += reward
