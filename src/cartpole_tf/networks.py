@@ -3,7 +3,7 @@ import keras as ks
 from keras.layers import Dense
 
 class ActorNetwork(ks.Model):
-    def __init__(self, n_actions, fc1_dims=256, fc2_dims=256):
+    def __init__(self, n_actions, fc1_dims=10, fc2_dims=10):
         super(ActorNetwork, self).__init__()
 
         self.fc1 = Dense(fc1_dims, activation='relu')

@@ -38,13 +38,14 @@ class Agent:
         state = tf.convert_to_tensor([observation])
 
         probs = self.actor(state)
+        # print("\nprobs\n", probs)
 
         dist = tfp.distributions.Categorical(probs)
-        # print(np.array(dist))
+        # print("\ndist\n", dist)
         action = dist.sample()
-        # print(action.numpy()[0])
+        # print("\naction\n", action.numpy()[0])
         log_probs = dist.log_prob(action)
-        # print(log_probs.numpy()[0])
+        # print("\nlog_probs\n", log_probs.numpy()[0])
         value = self.critic(state)
 
         action = action.numpy()[0]
@@ -91,8 +92,7 @@ class Agent:
                     clipped_probs = tf.clip_by_value(prob_ratio, 
                                                      1-self.policy_clip,
                                                     1+self.policy_clip)*advantage[batch]
-                    weighted_probs = clipped_probs * advantage[batch]
-                    actor_loss = -tf.math.minimum(weighted_probs, weighted_probs)
+                    actor_loss = -tf.math.minimum(weighted_probs, clipped_probs)
                     actor_loss = tf.math.reduce_mean(actor_loss)
 
                     returns = advantage[batch] + values[batch]
@@ -100,8 +100,11 @@ class Agent:
                     
                 actor_params = self.actor.trainable_variables
                 critic_params = self.critic.trainable_variables
+
+                # print("\n", actor_params, "\n")
                 actor_grad = tape.gradient(actor_loss, actor_params)
                 critic_grad = tape.gradient(critic_loss, critic_params)
+                # print("\n grads\n", actor_grad, "\n")
                 self.actor.optimizer.apply_gradients(zip(actor_grad, actor_params))
                 self.critic.optimizer.apply_gradients(zip(critic_grad, critic_params))
 
