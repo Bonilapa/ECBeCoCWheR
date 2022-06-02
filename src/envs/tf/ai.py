@@ -36,21 +36,26 @@ class AI:
 
     def choose_action(self, observation):
         state = tf.convert_to_tensor([observation])
-
+        # print("\nState:\n", state)
         probs = self.actor(state)
+        # print("\nprobs\n", probs, "\n")
 
         dist = tfp.distributions.Categorical(probs)
-        action = dist.sample()
-        log_probs = dist.log_prob(action)
+        # print("\ndist:\n", dist)
+        tmp = dist.sample()
+        action = probs.numpy()[0]
+        # print("\naction:\n",action)
+        log_probs = dist.log_prob(tmp)
         value = self.critic(state)
-
-        action = action.numpy()[0]
+        # probs = 0.1*action[0] + 0.01*action[1]  + 0.001*action[2]
+        # action = action.numpy()[0]
         value = value.numpy()[0]
         log_probs = log_probs.numpy()[0]
 
-        return action, log_probs, value
+        return action, tmp, log_probs, value
 
     def learn(self):
+        # print("\n______learn_________\n")
         for _ in range(self.n_epochs):
             state_arr, action_arr, old_prob_arr, vals_arr,\
             reward_arr, dones_arr, batches = \
@@ -74,10 +79,18 @@ class AI:
                     old_probs = tf.convert_to_tensor(old_prob_arr[batch])
                     actions = tf.convert_to_tensor(action_arr[batch])
 
+                    # print(actions)
                     probs = self.actor(states)
                     dist = tfp.distributions.Categorical(probs)
-                    new_probs = dist.log_prob(actions)
 
+                    # print(actions)
+                    # actions = actions.numpy().tolist()
+                    # print(actions)
+                    # act = []
+                    # for a in actions:
+                    #     act.append(0.1*a[0] + 0.01*a[1] + 0.001*a[2])
+                    new_probs = dist.log_prob(actions)
+                    # new_probs = tf.squeeze(tf.convert_to_tensor(act))
                     critic_value = self.critic(states)
 
                     critic_value = tf.squeeze(critic_value)
@@ -88,8 +101,7 @@ class AI:
                     clipped_probs = tf.clip_by_value(prob_ratio, 
                                                      1-self.policy_clip,
                                                     1+self.policy_clip)*advantage[batch]
-                    weighted_probs = clipped_probs * advantage[batch]
-                    actor_loss = -tf.math.minimum(weighted_probs, weighted_probs)
+                    actor_loss = -tf.math.minimum(weighted_probs, clipped_probs)
                     actor_loss = tf.math.reduce_mean(actor_loss)
 
                     returns = advantage[batch] + values[batch]
@@ -97,8 +109,10 @@ class AI:
                     
                 actor_params = self.actor.trainable_variables
                 critic_params = self.critic.trainable_variables
+                # print("\n", actor_params, "\n")
                 actor_grad = tape.gradient(actor_loss, actor_params)
                 critic_grad = tape.gradient(critic_loss, critic_params)
+                # print("\n grads\n", actor_grad, "\n")
                 self.actor.optimizer.apply_gradients(zip(actor_grad, actor_params))
                 self.critic.optimizer.apply_gradients(zip(critic_grad, critic_params))
 

@@ -134,3 +134,14 @@ class World:
     def get_world(self):
         return self.canvas
     
+    def get_observation(self):
+        obs = []
+        for a in self.agents:
+            x,y = a.get_position()
+            obs.append(x / self.canvas_shape[0])
+            obs.append(y / self.canvas_shape[1])
+            obs.append(a.orientation / 360.0)
+            obs.append(a.velocity)
+            obs.append(a.signal)
+        return obs
+    

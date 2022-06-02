@@ -3,13 +3,13 @@ import keras as ks
 from keras.layers import Dense
 
 class ActorNetwork(ks.Model):
-    def __init__(self, n_actions, fc1_dims=10, fc2_dims=10):
+    def __init__(self, n_actions, fc1_dims=64, fc2_dims=64):
         super(ActorNetwork, self).__init__()
 
         self.fc_common_1 = Dense(fc1_dims, activation='relu')
         self.fc_common_2 = Dense(fc2_dims, activation='relu')
 
-        self.task_out = Dense(3, activation=None)
+        self.task_out = Dense(n_actions, activation=None)
         # self.task_fcs = []
         # self.task_outs = []
         # for i in range(n_actions):
@@ -24,7 +24,7 @@ class ActorNetwork(ks.Model):
         return x
 
 class CriticNetwork(ks.Model):
-    def __init__(self, fc1_dims=10, fc2_dims=10):
+    def __init__(self, fc1_dims=64, fc2_dims=64):
         super(CriticNetwork, self).__init__()
 
         self.fc1 = Dense(fc1_dims, activation='relu')

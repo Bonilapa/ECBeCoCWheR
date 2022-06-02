@@ -3,6 +3,7 @@ import numpy as np
 from ai import AI
 from WheeledRobots import WheeledRobots
 from utils import plot_learning_curve
+from time import sleep
 
 if __name__ == '__main__':
     agents_amount = 2
@@ -22,7 +23,7 @@ if __name__ == '__main__':
     
     # agent.load_models()
 
-    n_games = 300
+    n_games = 3000
 
     figure_file = 'plots/cartpole.png'
 
@@ -48,19 +49,22 @@ if __name__ == '__main__':
             actions = []
             probs = []
             vals = []
+            ts = []
+            # sleep(5)
 
             for ai in agents_ai:
-                a, p, v = ai.choose_action(observation)
+                a, t, p, v = ai.choose_action(observation)
                 actions.append(a)
                 probs.append(p)
                 vals.append(v)
-
+                ts.append(t)
+            # print(actions)
             observation_, reward, done, info = env.step(actions)
             n_steps += 1
             score += reward
 
-            for ai, a, p, v in zip(agents_ai, actions, probs, vals):
-                ai.store_transition(observation, a, p, v, reward, done)
+            for ai, a, t, p, v in zip(agents_ai, actions, ts, probs, vals):
+                ai.store_transition(observation, t, p, v, reward, done)
                 if n_steps % N == 0:
                     ai.learn()
                     learn_iters += 1
