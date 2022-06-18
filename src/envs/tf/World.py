@@ -31,10 +31,16 @@ class World:
         self.y_max = int (form[1] * 0.9)
         self.x_max = int (form[0] * 0.9)
         # print(self.x_min, self.y_min, self.x_max, self.y_max)
+        for i in range(self.agents_amount):
 
-    def set_agents(self, agents):
-        self.agents = agents
-        self.elements.extend(self.agents)
+            agent = Agent("Agent_{}".format(i), self.x_max, self.x_min, self.y_max, self.y_min)
+            agent.activate_collision()
+            self.agents.append(agent)
+            self.elements.append(agent)
+
+    def assign_ai(self, ais):
+        for a, ai in zip(self.agents, ais):
+            a.ai = ai
     
     def get_agents(self):
         return self.agents
@@ -61,29 +67,33 @@ class World:
 
         return False
 
-    def reset(self):
-
-        self.agents = []
-        self.objects = []
-        self.elements = []
-        # Determine a place to intialise the chopper in
-        # print("here")
-        for i in range(self.agents_amount):
-
-            agent = Agent("Agent_{}".format(i), self.x_max, self.x_min, self.y_max, self.y_min)
-            agent.activate_collision()
+    def reset_agents(self):
+        new_agents = []
+        
+        # надо новых агентов создать сохранив их разумы
+        for a in self.agents:
+            a.agent_reset()
 
             drawn = False
+            print("\n",self.agents)
 
             while not drawn:
+                print("2")
                 x = np.float16(random.randrange(self.x_min, self.x_max))
                 y = np.float16(random.randrange(self.y_min, self.y_max))
-                agent.set_position(x, y)
-                if not any(self.has_collided(agent, a) for a in self.agents):
-                    self.agents.append(agent)
-                    self.elements.append(agent)
+                a.set_position(x, y)
+                if not any(self.has_collided(a, other) for other in self.agents):
+                    self.elements.append(a)
                     drawn = True
 
+        
+    def reset(self):
+        
+        self.objects = []
+        self.elements = []
+        self.reset_agents()
+        # Determine a place to intialise the chopper in
+        # print("here")
         
         for i in range(self.objects_amount):
 

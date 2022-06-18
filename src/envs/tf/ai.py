@@ -3,6 +3,7 @@ import tensorflow as tf
 import keras as ks
 from keras.optimizers import Adam
 import tensorflow_probability as tfp
+# from auv_mpc import KineticModel
 from ppo_memory import PPOMemory
 from networks import ActorNetwork, CriticNetwork
 class AI:
@@ -17,6 +18,8 @@ class AI:
 
         self.actor = ActorNetwork(n_actions)
         self.critic = CriticNetwork()
+        # self.kinetic_model = KineticModel()
+        
         self.actor.compile(optimizer=Adam(learning_rate=alpha))
         self.critic.compile(optimizer=Adam(learning_rate=alpha))
         self.memory = PPOMemory(batch_size)
@@ -27,7 +30,7 @@ class AI:
     def save_models(self, name):
         print('... saving models ...', name)
         self.actor.save(self.chkpt + "actor_" + name)
-        self.critic.save(self.chkpt + "critic_"+name)
+        self.critic.save(self.chkpt + "critic_" + name)
 
     def load_models(self, name):
         print('... loading models ...', name)
@@ -35,6 +38,7 @@ class AI:
         self.critic = ks.models.load_model(self.chkpt + "critic_"+name)
 
     def choose_action(self, observation):
+
         state = tf.convert_to_tensor([observation])
         # print("\nState:\n", state)
         probs = self.actor(state)
@@ -45,9 +49,13 @@ class AI:
         tmp = dist.sample()
         action = probs.numpy()[0]
         # print("\naction:\n",action)
-        log_probs = dist.log_prob(tmp)
+        # print('tmp: \n', tmp)
+
+        # pr = 0.1*action[0] + 0.01*action[1]  + 0.001*action[2]
+        # print('pr: \n', pr)
+        log_probs = dist.log_prob(tf.convert_to_tensor(tmp))
+        # print('log_probs:\n', log_probs)
         value = self.critic(state)
-        # probs = 0.1*action[0] + 0.01*action[1]  + 0.001*action[2]
         # action = action.numpy()[0]
         value = value.numpy()[0]
         log_probs = log_probs.numpy()[0]

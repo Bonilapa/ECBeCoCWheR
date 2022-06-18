@@ -1,7 +1,9 @@
+
 import gym
 import numpy as np
 from ai import AI
 from WheeledRobots import WheeledRobots
+from auv_mpc import KineticModel
 from utils import plot_learning_curve
 from time import sleep
 
@@ -12,7 +14,7 @@ if __name__ == '__main__':
     N = 20
     batch_size = 5
     n_epochs = 4
-    alpha = 0.0003
+    alpha = 0.0002
 
     agents_ai = []
     # print(env.get_action_dim()[0])
@@ -20,10 +22,11 @@ if __name__ == '__main__':
         agents_ai.append(AI(n_actions=env.get_action_dim()[0], batch_size=batch_size, 
                         alpha=alpha, n_epochs=n_epochs, 
                         input_dims=env.observation_space.shape))
+    env.world.assign_ai(agents_ai)
     
     # agent.load_models()
 
-    n_games = 3000
+    n_games = 30
 
     figure_file = 'plots/cartpole.png'
 
@@ -33,7 +36,7 @@ if __name__ == '__main__':
     learn_iters = 0
     avg_score = 0
     n_steps = 0
-
+    # kinetic_model = KineticModel()
 
     loaded_ppo = False
     for i in range(n_games):
@@ -45,16 +48,21 @@ if __name__ == '__main__':
         done = False
         score = 0
         while not done:
-            # env.render()
+            env.render()
             actions = []
             probs = []
             vals = []
             ts = []
-            # sleep(5)
 
-            for ai in agents_ai:
+            # sleep(5)
+            
+            for ai, a_image in zip(agents_ai, env.world.agents):
                 a, t, p, v = ai.choose_action(observation)
                 actions.append(a)
+                # vels = kinetic_model.get_velocities([0, 0, a_image.get_orientation()], a)
+                # pos = kinetic_model.get_position()
+                # pos = a_image.get_orientation() + pos 
+                # vel_z = np.sqrt(vels[0]**2 + vels[1]**2)
                 probs.append(p)
                 vals.append(v)
                 ts.append(t)
@@ -81,6 +89,10 @@ if __name__ == '__main__':
         print('episode', i, 'score %.1f' % score, 'avg score %.1f' % avg_score,
                 'time_steps', n_steps, 'learning_steps', learn_iters)
     x = [i+1 for i in range(len(score_history))]
-    plot_learning_curve(x, score_history, figure_file)
+    plot_learning_curve(x, score_history, figure_file, n_games)
+
+    print('Turn: [', env.min_turn, ', ', env.max_turn, ']')
+    print('Velo: [', env.min_velo,  ', ', env.max_velo, ']')
+    print('Signal: [', env.min_signal, ', ',  env.max_signal, ']')
     
 env.close()

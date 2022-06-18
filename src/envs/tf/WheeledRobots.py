@@ -13,6 +13,12 @@ from math import sin, cos, sqrt, radians
 
 class WheeledRobots(Env):
     def __init__(self, agents_amount, show = True):
+        self.min_turn = 0.0
+        self.max_turn = 0.0
+        self.min_velo = 0.0
+        self.max_velo = 0.0
+        self.min_signal = 0.0
+        self.max_signal = 0.0
         self.overall_distance = 0.0
         self.agents_amount = agents_amount
         super(WheeledRobots, self).__init__()
@@ -113,13 +119,15 @@ class WheeledRobots(Env):
         # assert self.action_space.contains(action), "Invalid Action"
         
         # assert (len(action) == 3), "Invalid Action"
-        # print(action)
+        # print(actions)
 
         # Decrease the fuel counter 
         # self.fuel_left -= 1 
         
         # Reward for executing a step.
+
         reward = self.reward_goal_1(actions)
+        # reward += 1
         # current_distance = 0.0
         # for i in range(self.world.agents_amount-1):
         #     x1, y1 = self.world.agents[i].get_position()
@@ -152,6 +160,20 @@ class WheeledRobots(Env):
         # print("Action turn : ", action[1])
         # print("Action velo : ", action[0])
         for agent, action in zip(self.world.agents, actions):
+
+            if self.min_signal > action[2]:
+                self.min_signal  = action[2]
+            if self.max_signal < action[2]:
+                self.max_signal  = action[2]
+            if self.min_turn > action[0]:
+                self.min_turn  = action[0]
+            if self.max_signal < action[0]:
+                self.max_signal  = action[0]
+            if self.min_velo > action[1]:
+                self.min_velo  = action[1]
+            if self.max_velo < action[1]:
+                self.max_velo  = action[1]
+            
             # print("\n", action.item(), "\n")
             agent.rotate(action[0])
             agent.set_velocity(action[1])

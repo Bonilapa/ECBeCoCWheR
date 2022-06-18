@@ -9,7 +9,7 @@ class ActorNetwork(ks.Model):
         self.fc_common_1 = Dense(fc1_dims, activation='relu')
         self.fc_common_2 = Dense(fc2_dims, activation='relu')
 
-        self.task_out = Dense(n_actions, activation=None)
+        self.task_out = Dense(n_actions, activation='sigmoid')
         # self.task_fcs = []
         # self.task_outs = []
         # for i in range(n_actions):
@@ -29,7 +29,7 @@ class CriticNetwork(ks.Model):
 
         self.fc1 = Dense(fc1_dims, activation='relu')
         self.fc2 = Dense(fc2_dims, activation='relu')
-        self.fc3 = Dense(1, activation=None)
+        self.fc3 = Dense(1, activation='sigmoid')
         
     def call(self, state):
         x = self.fc1(state)

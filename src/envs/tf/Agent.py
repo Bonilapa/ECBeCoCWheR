@@ -6,10 +6,11 @@ import cv2
 import numpy as np
 from math import sin, cos, sqrt, radians
 
+from ai import AI
+
 class Agent(Element):
     def __init__(self, name, x_max, x_min, y_max, y_min):
         super(Agent, self).__init__(name, x_max, x_min, y_max, y_min)
-
         self.icon_w_original = 64
         self.icon_h_original = 64
         self.set_h(64)
@@ -25,7 +26,14 @@ class Agent(Element):
         # self.icon_h = self.icon_h_original
         # self.icon_w = self.icon_w_original
         self.rotate(np.random.randint(0, 359))
+        self.ai = None
         # self.rotate(-100)
+
+    def agent_reset(self):
+        self.orientation = 0
+        self.velocity = np.random.uniform(0, 1)
+        self.signal = np.random.uniform(0, 1)
+        self.rotate(np.random.randint(0, 359))
 
     def get_padding_value(self, angle):
         angle = abs(angle) % 90
