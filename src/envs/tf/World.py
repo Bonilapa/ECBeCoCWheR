@@ -75,17 +75,27 @@ class World:
             a.agent_reset()
 
             drawn = False
-            print("\n",self.agents)
+            # print("\n",self.agents)
 
             while not drawn:
-                print("2")
                 x = np.float16(random.randrange(self.x_min, self.x_max))
                 y = np.float16(random.randrange(self.y_min, self.y_max))
                 a.set_position(x, y)
-                if not any(self.has_collided(a, other) for other in self.agents):
-                    self.elements.append(a)
-                    drawn = True
-
+                # for other in self.agents:
+                #     print("\nOther: ", other.get_position())
+                #     print("a: ", a.get_position())
+                # print(x,y)
+                for other in self.agents:
+                    if not a == other:
+                        if not self.has_collided(a, other):
+                            self.elements.append(a)
+                            drawn = True
+                # if  not any(self.has_collided(a, other) for other in self.agents):
+                #     # new_agents.append(a)
+                #     self.elements.append(a)
+                #     drawn = True
+        # self.render()
+        # self.agents = new_agents
         
     def reset(self):
         

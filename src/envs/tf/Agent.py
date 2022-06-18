@@ -30,6 +30,7 @@ class Agent(Element):
         # self.rotate(-100)
 
     def agent_reset(self):
+        self.set_position(0.0, 0.0)
         self.orientation = 0
         self.velocity = np.random.uniform(0, 1)
         self.signal = np.random.uniform(0, 1)
