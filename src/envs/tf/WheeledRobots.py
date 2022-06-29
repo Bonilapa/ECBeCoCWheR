@@ -13,6 +13,9 @@ from math import sin, cos, sqrt, radians
 
 class WheeledRobots(Env):
     def __init__(self, agents_amount, show = True):
+        self.reward = 0
+        self.show = show
+        self.episodes_number = 100
         self.min_turn = 0.0
         self.max_turn = 0.0
         self.min_velo = 0.0
@@ -28,8 +31,8 @@ class WheeledRobots(Env):
         world_shape = (600, 800, 3)
         obs_vector = 0
         for i in range(agents_amount):
-            # signal, velocity, orientation, position(x,y)
-            obs_vector += 5
+            # velocity, orientation, position(x,y), birds position(x,y)
+            obs_vector += 8
 
         # self.observation_space = spaces.Box(low = np.zeros(observation_shape), 
         #                                 high = np.ones(observation_shape),
@@ -44,11 +47,11 @@ class WheeledRobots(Env):
         # self.action_space = spaces.Discrete(5,)
         self.action_spaces = []
         for i in range(self.agents_amount):
-            self.action_spaces.append(spaces.Box(low= np.zeros(3),
-                                        high= np.ones(3),
+            self.action_spaces.append(spaces.Box(low= np.zeros(8),
+                                        high= np.ones(8),
                                         dtype=np.float16))
         
-        self.world = World(world_shape, self.agents_amount, 0)
+        self.world = World(world_shape, self.agents_amount, self.agents_amount, self.show)
         
         self.finish_distance = 0.0
         # Define elements present inside the environment
@@ -60,19 +63,46 @@ class WheeledRobots(Env):
     def get_agents_amount(self):
         return self.agents_amount
     
-    def reward_goal_1(self, actions):
+    # def reward_goal_1(self, actions):
+    #     agents = self.world.agents
+    #     if agents[0].velocity < actions[0][1] and agents[1].velocity > actions[1][1]:
+    #         return 1
+    #     else:
+    #         return 0
+    def reward_goal_1(self):
         agents = self.world.agents
-        if agents[0].velocity < actions[0][1] and agents[1].velocity > actions[1][1]:
-            return 1
-        else:
-            return 0
+        rew = 0
+        # for b in self.world.objects:
+        #     print(b.name)
+        for agent in self.world.agents:
+            for b in  self.world.objects:
+                # print(b.name)
+                if self.world.has_collided(agent, b):
+                    # print("Bird collision")
+                    rew += 1
+
+        return rew
+            # print(agent.get_distance())
+            # # print(agent.get_distance_old())
+            # if agent.get_distance() < agent.get_distance_old():
+
+            #     agent.distance_old = agent.distance
+            #     return 1
+            # else:
+            #     agent.distance_old = agent.distance
+            #     return -1
+            
+                # if agents[0].velocity < actions[0][1] and agents[1].velocity > actions[1][1]:
+                #     return 1
+                # else:
+                #     return 0
 
     def reset(self):
         # Reset the fuel consumed
         # self.fuel_left = self.max_fuel
 
         # Reset the reward
-        self.ep_return  = 100
+        self.ep_return  = self.episodes_number
         # Number of birds
         # self.bird_count = 0
         # self.fuel_count = 0
@@ -126,8 +156,9 @@ class WheeledRobots(Env):
         
         # Reward for executing a step.
 
-        reward = self.reward_goal_1(actions)
-        # reward += 1
+        self.reward = self.reward_goal_1()
+        # reward = 1
+
         # current_distance = 0.0
         # for i in range(self.world.agents_amount-1):
         #     x1, y1 = self.world.agents[i].get_position()
@@ -160,30 +191,33 @@ class WheeledRobots(Env):
         # print("Action turn : ", action[1])
         # print("Action velo : ", action[0])
         for agent, action in zip(self.world.agents, actions):
-
-            if self.min_signal > action[2]:
-                self.min_signal  = action[2]
-            if self.max_signal < action[2]:
-                self.max_signal  = action[2]
-            if self.min_turn > action[0]:
-                self.min_turn  = action[0]
-            if self.max_signal < action[0]:
-                self.max_signal  = action[0]
-            if self.min_velo > action[1]:
-                self.min_velo  = action[1]
-            if self.max_velo < action[1]:
-                self.max_velo  = action[1]
+            vel = agent.get_agent_velocities(action)
+            # print(actions)
+            # if self.min_signal > action[2]:
+            #     self.min_signal  = action[2]
+            # if self.max_signal < action[2]:
+            #     self.max_signal  = action[2]
+            # if self.min_turn > action[0]:
+            #     self.min_turn  = action[0]
+            # if self.max_signal < action[0]:
+            #     self.max_signal  = action[0]
+            # if self.min_velo > action[1]:
+            #     self.min_velo  = action[1]
+            # if self.max_velo < action[1]:
+            #     self.max_velo  = action[1]
             
             # print("\n", action.item(), "\n")
-            agent.rotate(action[0])
-            agent.set_velocity(action[1])
-            agent.set_signal(action[2])
+            # print(action)
+            # print(vel[5])
+            agent.rotate(vel[5])
+            agent.set_velocity(sqrt(vel[1]**2 + vel[0]**2))
+            # agent.set_signal(action[2])
             # agent.set_velocity(action*10)
 
             current_x, current_y = agent.get_position()
             cur_x = float(current_x)
             cur_y = float(current_y)
-            # print("====================\ncurrent_x_y:", current_x, current_y)
+            # print("Velocity: ", agent.velocity, "\n====================\ncurrent_x_y:", current_x, current_y)
             agent.move_agent()
 
             # print("after_move. current_x_y \n", current_x, current_y)
@@ -193,103 +227,26 @@ class WheeledRobots(Env):
 
             # see next move is collision with 
             # other agents, if yes, than set prev location
-            if any( not (a == agent) and self.world.has_collided(agent, a) for a in self.world.agents):
-                # print("Collision!!!!!!!!!!!!!!")
+            if any(self.world.has_collided(agent, a) for a in self.world.agents):
+                # print("Touch an agent")
 
                 agent.set_position(cur_x, cur_y)
-
-            # f = agent.get_position()
-            # print(f[0], f[1], "\n==============")
-            
-        # sleep(5)
-        
-
-        # # Spawn a bird at the right edge with prob 0.01
-        # if random.random() < 0.01:
-            
-        #     # Spawn a bird
-        #     spawned_bird = Bird("bird_{}".format(self.bird_count), self.x_max, self.x_min, self.y_max, self.y_min)
-        #     self.bird_count += 1
-
-        #     # Compute the x,y co-ordinates of the position from where the bird has to be spawned
-        #     # Horizontally, the position is on the right edge and vertically, the height is randomly 
-        #     # sampled from the set of permissible values
-        #     bird_x = self.x_max
-        #     bird_y = random.randrange(self.y_min, self.y_max)
-        #     spawned_bird.set_position(self.x_max, bird_y)
-            
-        #     # Append the spawned bird to the elements currently present in Env. 
-        #     self.elements.append(spawned_bird)    
-
-        # # Spawn a fuel at the bottom edge with prob 0.01
-        # if random.random() < 0.01:
-        #     # Spawn a fuel tank
-        #     spawned_fuel = Fuel("fuel_{}".format(self.fuel_count), self.x_max, self.x_min, self.y_max, self.y_min)
-        #     self.fuel_count += 1
-            
-        #     # Compute the x,y co-ordinates of the position from where the fuel tank has to be spawned
-        #     # Horizontally, the position is randomly chosen from the list of permissible values and 
-        #     # vertically, the position is on the bottom edge
-        #     fuel_x = random.randrange(self.x_min, self.x_max)
-        #     fuel_y = self.y_max
-        #     spawned_fuel.set_position(fuel_x, fuel_y)
-            
-        #     # Append the spawned fuel tank to the elemetns currently present in the Env.
-        #     self.elements.append(spawned_fuel)   
-
-        # For elements in the Ev
-        # for elem in self.world.elements:
-
-            # if isinstance(elem, Bird):
-            #     # If the bird has reached the left edge, remove it from the Env
-            #     if elem.get_position()[0] <= self.x_min:
-            #         self.elements.remove(elem)
-            #     else:
-            #         # Move the bird left by 5 pts.
-            #         elem.move(-5,0)
-                
-            #     # If the bird has collided.
-            #     if self.has_collided(self.chopper, elem):
-            #         # Conclude the episode and remove the chopper from the Env.
-            #         reward = -10
-            #         # self.elements.remove(self.chopper)
-            #         done = True
-
-            # if isinstance(elem, Fuel):
-            #     # If the fuel tank has reached the top, remove it from the Env
-            #     if elem.get_position()[1] <= float(self.y_min):
-            #         self.elements.remove(elem)
-            #     else:
-            #         # Move the Tank up by 5 pts.
-            #         elem.move(0, -5)
-                    
-            #     # If the fuel tank has collided with the chopper.
-            #     if self.has_collided(self.chopper, elem):
-            #         # Remove the fuel tank from the env.
-            #         self.elements.remove(elem)
-                    
-            #         # Fill the fuel tank of the chopper to full.
-            #         self.fuel_left = self.max_fuel
-        
-
-            # print("done")
-        # Draw elements on the canvas
-        # self.observation_space = self.world.draw_world(done = done)
 
         self.observation_space = self.world.get_observation()
         # print(self.world.get_world().shape)
         # print(self.obsservation_space)
-        return self.observation_space, reward, done, []
+        return self.observation_space, self.reward, done, []
 
     def render(self, mode = "human"):
-        assert mode in ["human", "rgb_array"], "Invalid mode, must be either \"human\" or \"rgb_array\""
-        if mode == "human":
-            cv2.imshow("Game", self.world.draw_world())
-            # print(self.world.get_world().shape)
-            cv2.waitKey(10)
-        
-        elif mode == "rgb_array":
-            return self.world.draw_world()
+        if self.show:
+            assert mode in ["human", "rgb_array"], "Invalid mode, must be either \"human\" or \"rgb_array\""
+            if mode == "human":
+                cv2.imshow("Game", self.world.draw_world(self.ep_return, self.reward))
+                # print(self.world.get_world().shape)
+                cv2.waitKey(10)
+            
+            elif mode == "rgb_array":
+                return self.world.draw_world()
         
     def close(self):
         cv2.destroyAllWindows()

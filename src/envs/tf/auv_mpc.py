@@ -8,7 +8,7 @@ class KineticModel:
     def __init__(self) -> None:
         self.posiion = Matrix(np.zeros(6))
         self.velocities = Matrix(np.zeros(6))
-        self.control_values = Matrix(np.zeros(8))
+        # self.control_values = Matrix(np.zeros(8))
 
 
         # Kinetic model parameters
@@ -92,7 +92,7 @@ class KineticModel:
         self.M = Ma + Mrb
 
         # Damping matrix
-        self.D = expand(Matrix([[Xuu + Xu, 0, 0, 0, 0, 0],
+        self.D = expand(-Matrix([[Xuu + Xu, 0, 0, 0, 0, 0],
                     [0, Yvv + Yv, 0, 0, 0, 0],
                     [0, 0, Zww + Zw, 0, 0, 0],
                     [0, 0, 0, Kpp + Kp, 0, 0],
@@ -115,22 +115,31 @@ class KineticModel:
                     [0.06, 0.06, -0.06, -0.06, 0.12, -0.12, 0.12, -0.12],
                     [-0.1888, 0.1888, 0.1888, -0.1888, 0, 0, 0, 0]])
 
-    def get_velocities(self, agent_orientation, control_values):
+    def get_velocities(self, accs, control_values, agent_orientation):
 
+        self.G = self.G.subs("phi", 0).subs("th", 0).subs("psi", agent_orientation)
         self.control_values = control_values
-        self.Jnu.subs('phi', agent_orientation[0]).subs('th', agent_orientation[1]).subs('psi', agent_orientation[2])
-
+        # print("\n",self.Jnu)
+        # print("\n",self.Jnu)
         invD = expand(self.D.inv())
-        K = expand(Matrix(np.diag(np.full(6, 1/40))))
+        K = expand(Matrix(np.diag(np.full(8, 1/40))))
+        # Des = Matrix(np.diag([desired[0], desired[1], 0, 0, 0, des]))
         # invK = expand(K.inv())
 
         # invThrusts = self.Thrusts.inv()
         # u = invK * invThrusts * tau
-        tau = self.Thrusts * K * self.control_values
-        self.velocities = invD * (tau - self.G - self.M)
+        control_values = Matrix(control_values)
+        accs = Matrix(accs)
+        # print(control_values.shape)
+        tau =  -20000 * self.Thrusts * K * control_values
+        # print("\ntau: ", tau.shape)
+        self.velocities = invD * (tau - self.G - self.M * accs)
+        # print("\n", self.velocities,"\n")
         return self.velocities
 
-    def get_position(self):
+    def get_position(self, agent_orientation):
+        self.Jnu = self.Jnu.subs("phi", 0).subs("th", 0).subs("psi", agent_orientation)
+
         self.posiion = self.Jnu * self.velocities
         return self.posiion
 
