@@ -12,7 +12,7 @@ if __name__ == '__main__':
 
     n_games = 500
     agents_amount = 3
-    env = WheeledRobots(agents_amount, show=False)
+    env = WheeledRobots(agents_amount, show=True)
 
     N = 20
     batch_size = 5

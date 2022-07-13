@@ -228,7 +228,7 @@ class WheeledRobots(Env):
             # see next move is collision with 
             # other agents, if yes, than set prev location
             if any(self.world.has_collided(agent, a) for a in self.world.agents):
-                # print("Touch an agent")
+                print("Touch an agent")
 
                 agent.set_position(cur_x, cur_y)
 

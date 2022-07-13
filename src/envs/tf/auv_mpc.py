@@ -131,7 +131,7 @@ class KineticModel:
         control_values = Matrix(control_values)
         accs = Matrix(accs)
         # print(control_values.shape)
-        tau =  -20000 * self.Thrusts * K * control_values
+        tau =  -15000 * self.Thrusts * K * control_values
         # print("\ntau: ", tau.shape)
         self.velocities = invD * (tau - self.G - self.M * accs)
         # print("\n", self.velocities,"\n")
